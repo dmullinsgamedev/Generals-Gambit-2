@@ -353,7 +353,7 @@ export function showPromptInput(type) {
     <div id="enemyChoice" style="font-size:1.1em;margin-bottom:1em;"><b>${enemyText}</b></div>
     <input id="promptInput" class="prompt-input" placeholder="e.g.," autocomplete="off" style="width:100%;font-family:'Luckiest Guy',cursive,Arial,sans-serif;font-size:1.3em;padding:1em;box-sizing:border-box;" />
     <div class="prompt-buttons" style="margin:1em 0;">
-      <button class="menu-btn" onclick="generateRandom('${type}')">RANDOM</button>
+      <button class="menu-btn" id="randomBtn">RANDOM</button>
       <button class="menu-btn" id="generateBtn">GENERATE ${type === 'general' ? 'TROOPS' : 'FORMATION'}</button>
     </div>
     <div id="previewContainer" style="display:none;margin-top:20px;text-align:center;">
@@ -366,13 +366,15 @@ export function showPromptInput(type) {
   input.focus();
   input.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-      window.generateFromPrompt(type, true);
+      generateFromPrompt(type, true);
     }
   });
-  document.getElementById('generateBtn').onclick = () => window.generateFromPrompt(type, true);
+  document.getElementById('generateBtn').onclick = () => generateFromPrompt(type, true);
+  document.getElementById('randomBtn').onclick = () => window.generateRandom(type);
 }
 
 window.showPromptInput = showPromptInput;
+window.generateFromPrompt = generateFromPrompt;
 
 window.generateRandom = function(promptType) {
   if (promptType === 'general') {
