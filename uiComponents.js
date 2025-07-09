@@ -438,7 +438,7 @@ window.showTroopPreviewCombined = function(result, prompt) {
   const preview3D = document.getElementById('preview3D');
   const previewInfo = document.getElementById('previewInfo');
   previewContainer.style.display = 'block';
-  previewInfo.innerHTML = `<button class="menu-btn" id="continueToFormationBtn" onclick="continueToFormation()">Continue to Formation</button>`;
+  previewInfo.innerHTML = `<button class="menu-btn" id="continueToFormationBtn">Continue to Formation</button>`;
   if (window.createTroopPreview) window.createTroopPreview(preview3D, result, prompt);
   setTimeout(() => {
     const btn = document.getElementById('continueToFormationBtn');
