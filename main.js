@@ -691,6 +691,78 @@ function generateGeneralFromPrompt(prompt) {
   };
 }
 
+function generateFormationFromPrompt(prompt) {
+  const lowerPrompt = prompt.toLowerCase();
+  
+  // Analyze prompt for keywords
+  const keywords = {
+    line: ['line', 'straight', 'row', 'column', 'single', 'single-file'],
+    wedge: ['wedge', 'triangle', 'triangular', 'three-sided', 'three-sided-wedge'],
+    v_formation: ['v-formation', 'v-shaped', 'v-shaped-formation', 'v-shaped-wedge'],
+    diamond: ['diamond', 'diamond-shaped', 'diamond-shaped-formation', 'diamond-wedge'],
+    arrow: ['arrow', 'arrow-shaped', 'arrow-shaped-formation', 'arrow-wedge'],
+    circle: ['circle', 'circular', 'circular-formation', 'circular-wedge'],
+    square: ['square', 'square-shaped', 'square-shaped-formation', 'square-wedge']
+  };
+  
+  let formationType = 'line'; // Default
+  let maxMatches = 0;
+  
+  for (const [type, words] of Object.entries(keywords)) {
+    const matches = words.filter(word => lowerPrompt.includes(word)).length;
+    if (matches > maxMatches) {
+      maxMatches = matches;
+      formationType = type;
+    }
+  }
+  
+  // Generate bonus stats based on prompt analysis
+  let atkBonus = 1.0;
+  let defBonus = 1.0;
+  let speedBonus = 1.0;
+  let desc = 'Custom formation.';
+  
+  // Bonus adjustments based on keywords
+  if (lowerPrompt.includes('fast') || lowerPrompt.includes('quick') || lowerPrompt.includes('light')) {
+    speedBonus = 1.2;
+  } else if (lowerPrompt.includes('heavy') || lowerPrompt.includes('strong') || lowerPrompt.includes('powerful')) {
+    atkBonus = 1.1;
+    defBonus = 0.9;
+  } else if (lowerPrompt.includes('elite') || lowerPrompt.includes('tactical') || lowerPrompt.includes('strategic')) {
+    atkBonus = 1.1;
+    defBonus = 1.0;
+    speedBonus = 0.9;
+  }
+  
+  // Description based on type and keywords
+  if (formationType === 'line') {
+    desc = 'Straight line formation. Good for ranged and melee units.';
+  } else if (formationType === 'wedge') {
+    desc = 'Triangle-shaped formation. Good for melee and ranged units.';
+  } else if (formationType === 'v_formation') {
+    desc = 'V-shaped formation. Good for ranged and melee units.';
+  } else if (formationType === 'diamond') {
+    desc = 'Diamond-shaped formation. Good for ranged and melee units.';
+  } else if (formationType === 'arrow') {
+    desc = 'Arrow-shaped formation. Good for ranged and melee units.';
+  } else if (formationType === 'circle') {
+    desc = 'Circular formation. Good for ranged and melee units.';
+  } else if (formationType === 'square') {
+    desc = 'Square-shaped formation. Good for ranged and melee units.';
+  }
+  
+  return {
+    name: `Custom ${formationType} Formation`,
+    bonus: {
+      atk: atkBonus,
+      def: defBonus,
+      speed: speedBonus
+    },
+    desc: desc,
+    prompt: lowerPrompt
+  };
+}
+
 // ============================================================================
 // WINDOW RESIZE HANDLING
 // ============================================================================

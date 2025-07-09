@@ -4,6 +4,7 @@
 
 import { generateCustomTroopMesh, determineTroopVariantFromPrompt } from './troopGenerator.js';
 import { FORMATIONS, TROOP_TYPES, TROOP_VARIANTS } from './gameData.js';
+import { generateGeneralFromPrompt, generateFormationFromPrompt } from './main.js';
 
 // --- Global state for custom troops ---
 let customTroopData = null;
@@ -416,7 +417,7 @@ window.generateFromPrompt = function(promptType, showPreviewOnly) {
   }
   let result;
   if (promptType === 'general') {
-    result = window.generateGeneralFromPrompt(prompt);
+    result = generateGeneralFromPrompt(prompt);
     window.state.player = result;
     window.state.playerHP = result.hp;
     window.state.enemyHP = window.state.enemy.hp;
@@ -424,7 +425,7 @@ window.generateFromPrompt = function(promptType, showPreviewOnly) {
     window.state.player.prompt = prompt;
     window.showTroopPreviewCombined(result, prompt);
   } else {
-    result = window.generateFormationFromPrompt(prompt);
+    result = generateFormationFromPrompt(prompt);
     window.state.playerFormation = result;
     window.showPreview(promptType, result, prompt);
   }
