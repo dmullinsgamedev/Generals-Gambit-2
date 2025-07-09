@@ -373,7 +373,27 @@ export function showPromptInput(type) {
   document.getElementById('randomBtn').onclick = () => window.generateRandom(type);
 }
 
-window.showPromptInput = showPromptInput;
+function generateFromPrompt(promptType, showPreviewOnly) {
+  const prompt = document.getElementById('promptInput').value.trim();
+  if (!prompt) {
+    alert('Please enter a description!');
+    return;
+  }
+  let result;
+  if (promptType === 'general') {
+    result = generateGeneralFromPrompt(prompt);
+    window.state.player = result;
+    window.state.playerHP = result.hp;
+    window.state.enemyHP = window.state.enemy.hp;
+    window.state.player.troops = result.troops;
+    window.state.player.prompt = prompt;
+    window.showTroopPreviewCombined(result, prompt);
+  } else {
+    result = generateFormationFromPrompt(prompt);
+    window.state.playerFormation = result;
+    window.showPreview(promptType, result, prompt);
+  }
+}
 window.generateFromPrompt = generateFromPrompt;
 
 window.generateRandom = function(promptType) {
@@ -408,28 +428,6 @@ window.generateRandom = function(promptType) {
     ];
     const randomForm = randomFormations[Math.floor(Math.random() * randomFormations.length)];
     document.getElementById('promptInput').value = randomForm;
-  }
-};
-
-window.generateFromPrompt = function(promptType, showPreviewOnly) {
-  const prompt = document.getElementById('promptInput').value.trim();
-  if (!prompt) {
-    alert('Please enter a description!');
-    return;
-  }
-  let result;
-  if (promptType === 'general') {
-    result = generateGeneralFromPrompt(prompt);
-    window.state.player = result;
-    window.state.playerHP = result.hp;
-    window.state.enemyHP = window.state.enemy.hp;
-    window.state.player.troops = result.troops;
-    window.state.player.prompt = prompt;
-    window.showTroopPreviewCombined(result, prompt);
-  } else {
-    result = generateFormationFromPrompt(prompt);
-    window.state.playerFormation = result;
-    window.showPreview(promptType, result, prompt);
   }
 };
 
