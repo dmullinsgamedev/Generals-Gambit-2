@@ -575,6 +575,8 @@ function restartGame() {
 window.restartGame = restartGame;
 window.selectGeneral = selectGeneral;
 window.selectFormation = selectFormation;
+window.generateGeneralFromPrompt = generateGeneralFromPrompt;
+window.generateFormationFromPrompt = generateFormationFromPrompt;
 
 // ============================================================================
 // UTILITY FUNCTIONS

@@ -350,7 +350,7 @@ export function showPromptInput(type) {
   promptContainer.innerHTML = `
     <h2 style="font-size:2.2em;margin-bottom:0.3em;">DESCRIBE YOUR ${type === 'general' ? 'TROOPS' : 'FORMATION'}</h2>
     <div id="enemyChoice" style="font-size:1.1em;margin-bottom:1em;"><b>${enemyText}</b></div>
-    <input id="promptInput" class="prompt-input" placeholder="e.g.," autocomplete="off" />
+    <input id="promptInput" class="prompt-input" placeholder="e.g.," autocomplete="off" style="width:100%;font-family:'Luckiest Guy',cursive,Arial,sans-serif;font-size:1.3em;padding:1em;box-sizing:border-box;" />
     <div class="prompt-buttons" style="margin:1em 0;">
       <button class="menu-btn" onclick="generateRandom('${type}')">RANDOM</button>
       <button class="menu-btn" id="generateBtn">GENERATE ${type === 'general' ? 'TROOPS' : 'FORMATION'}</button>
