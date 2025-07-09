@@ -353,7 +353,7 @@ export function showPromptInput(type) {
     <input id="promptInput" class="prompt-input" placeholder="e.g.," autocomplete="off" />
     <div class="prompt-buttons" style="margin:1em 0;">
       <button class="menu-btn" onclick="generateRandom('${type}')">RANDOM</button>
-      <button class="menu-btn" onclick="generateFromPrompt('${type}')">GENERATE ${type === 'general' ? 'TROOPS' : 'FORMATION'}</button>
+      <button class="menu-btn" id="generateBtn">GENERATE ${type === 'general' ? 'TROOPS' : 'FORMATION'}</button>
     </div>
     <div id="previewContainer" style="display:none;margin-top:20px;text-align:center;">
       <h4>Preview</h4>
@@ -365,9 +365,10 @@ export function showPromptInput(type) {
   input.focus();
   input.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-      window.generateFromPrompt(type);
+      window.generateFromPrompt(type, true);
     }
   });
+  document.getElementById('generateBtn').onclick = () => window.generateFromPrompt(type, true);
 }
 
 window.showPromptInput = showPromptInput;
@@ -407,7 +408,7 @@ window.generateRandom = function(promptType) {
   }
 };
 
-window.generateFromPrompt = function(promptType) {
+window.generateFromPrompt = function(promptType, showPreviewOnly) {
   const prompt = document.getElementById('promptInput').value.trim();
   if (!prompt) {
     alert('Please enter a description!');
@@ -421,7 +422,7 @@ window.generateFromPrompt = function(promptType) {
     window.state.enemyHP = window.state.enemy.hp;
     window.state.player.troops = result.troops;
     window.state.player.prompt = prompt;
-    window.showPreview(promptType, result, prompt);
+    window.showTroopPreviewCombined(result, prompt);
   } else {
     result = window.generateFormationFromPrompt(prompt);
     window.state.playerFormation = result;
@@ -429,31 +430,22 @@ window.generateFromPrompt = function(promptType) {
   }
 };
 
-window.showPreview = function(promptType, result, prompt) {
+window.showTroopPreviewCombined = function(result, prompt) {
   const previewContainer = document.getElementById('previewContainer');
   const preview3D = document.getElementById('preview3D');
   const previewInfo = document.getElementById('previewInfo');
   previewContainer.style.display = 'block';
-  if (promptType === 'general') {
-    previewInfo.innerHTML = `<button class="menu-btn" id="continueToFormationBtn" onclick="continueToFormation()">Continue to Formation</button>`;
-    // Create 3D preview of troops
-    if (window.createTroopPreview) window.createTroopPreview(preview3D, result, prompt);
-    setTimeout(() => {
-      const btn = document.getElementById('continueToFormationBtn');
-      if (btn) {
-        btn.onclick = () => {
-          btn.disabled = true;
-          continueToFormation();
-        };
-      }
-    }, 0);
-  } else {
-    const atkDiff = Math.round((result.bonus.atk-1)*100);
-    const defDiff = Math.round((result.bonus.def-1)*100);
-    const speedDiff = Math.round((result.bonus.speed-1)*100);
-    previewInfo.innerHTML = `<p>ATK ${atkDiff > 0 ? '+' : ''}${atkDiff}% | DEF ${defDiff > 0 ? '+' : ''}${defDiff}% | SPD ${speedDiff > 0 ? '+' : ''}${speedDiff}%</p><div style="margin-top: 15px;"><button class="menu-btn" onclick="goBackToTroops()" style="margin-right: 10px;">← Back</button><button class="menu-btn" onclick="startBattleFromPrompt()">Start Battle!</button></div>`;
-    if (window.createFormationPreview) window.createFormationPreview(preview3D, result, window.state.player.troops, window.state.player.prompt, window.state.player.color);
-  }
+  previewInfo.innerHTML = `<button class="menu-btn" id="continueToFormationBtn" onclick="continueToFormation()">Continue to Formation</button>`;
+  if (window.createTroopPreview) window.createTroopPreview(preview3D, result, prompt);
+  setTimeout(() => {
+    const btn = document.getElementById('continueToFormationBtn');
+    if (btn) {
+      btn.onclick = () => {
+        btn.disabled = true;
+        continueToFormation();
+      };
+    }
+  }, 0);
 };
 
 window.continueToFormation = function() {
