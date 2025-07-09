@@ -372,6 +372,7 @@ export function showPromptInput(type) {
   document.getElementById('generateBtn').onclick = () => generateFromPrompt(type, true);
   document.getElementById('randomBtn').onclick = () => window.generateRandom(type);
 }
+window.showPromptInput = showPromptInput;
 
 function generateFromPrompt(promptType, showPreviewOnly) {
   const prompt = document.getElementById('promptInput').value.trim();
