@@ -217,34 +217,6 @@ function startGame() {
   showTroopDescriptionUI();
 }
 
-function showGeneralSelection() {
-  cardRow.innerHTML = '';
-  promptContainer.style.display = 'none';
-  scoreboard.style.display = 'none';
-  
-  // Add custom troop description option
-  const customCard = document.createElement('div');
-  customCard.className = 'card custom-card';
-  customCard.innerHTML = `
-    <h3>Custom Troops</h3>
-    <p>Describe your own troops</p>
-  `;
-  customCard.onclick = () => showTroopDescriptionUI();
-  cardRow.appendChild(customCard);
-  
-  // Add preset generals
-  GENERALS.forEach(general => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <h3>${general.name}</h3>
-      <p>${general.desc}</p>
-    `;
-    card.onclick = () => selectGeneral(general);
-    cardRow.appendChild(card);
-  });
-}
-
 function selectGeneral(general) {
   state.player = general;
   state.phase = 'formation';
