@@ -214,7 +214,7 @@ function animate() {
 
 function startGame() {
   state.phase = 'setup';
-  showTroopDescriptionUI();
+  showPromptInput('general');
 }
 
 function selectGeneral(general) {
@@ -508,7 +508,7 @@ function nextRound() {
     endGame();
   } else {
     state.phase = 'setup';
-    showTroopDescriptionUI();
+    showPromptInput('general');
   }
 }
 

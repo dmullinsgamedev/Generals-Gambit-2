@@ -333,13 +333,140 @@ function positionTroopsInFormationPreview(troops, formation) {
   }
 }
 
-// --- Global Functions for UI ---
-window.showTroopDescriptionUI = showTroopDescriptionUI;
-window.hideTroopDescriptionUI = hideTroopDescriptionUI;
-window.generateRandomTroopDescription = generateRandomTroopDescription;
-window.generateTroopsFromDescription = generateTroopsFromDescription;
-window.showFormationPreview = showFormationPreview;
-window.hideFormationPreview = hideFormationPreview;
+// --- Prompt UI Restoration ---
+
+// Show the prompt input for troop or formation
+export function showPromptInput(type) {
+  const promptContainer = document.getElementById('promptContainer');
+  const cardRow = document.getElementById('cardRow');
+  cardRow.innerHTML = '';
+  promptContainer.style.display = 'block';
+  let enemyText = '';
+  if (type === 'general') {
+    enemyText = window.state && window.state.enemy && window.state.enemy.name ? `(Enemy chose: ${window.state.enemy.name})` : '';
+  } else if (type === 'formation') {
+    enemyText = window.state && window.state.enemyFormation && window.state.enemyFormation.name ? `(Enemy formation: ${window.state.enemyFormation.name})` : '';
+  }
+  promptContainer.innerHTML = `
+    <h2 style="font-size:2.2em;margin-bottom:0.3em;">DESCRIBE YOUR ${type === 'general' ? 'TROOPS' : 'FORMATION'}</h2>
+    <div id="enemyChoice" style="font-size:1.1em;margin-bottom:1em;"><b>${enemyText}</b></div>
+    <input id="promptInput" class="prompt-input" placeholder="e.g.," autocomplete="off" />
+    <div class="prompt-buttons" style="margin:1em 0;">
+      <button class="menu-btn" onclick="generateRandom('${type}')">RANDOM</button>
+      <button class="menu-btn" onclick="generateFromPrompt('${type}')">GENERATE ${type === 'general' ? 'TROOPS' : 'FORMATION'}</button>
+    </div>
+    <div id="previewContainer" style="display:none;margin-top:20px;text-align:center;">
+      <h4>Preview</h4>
+      <div id="preview3D" style="width:300px;height:200px;margin:0 auto;border:1px solid #ccc;background:#f0f0f0;"></div>
+      <div id="previewInfo" style="margin-top:10px;"></div>
+    </div>
+  `;
+  const input = document.getElementById('promptInput');
+  input.focus();
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      window.generateFromPrompt(type);
+    }
+  });
+}
+
+window.showPromptInput = showPromptInput;
+
+window.generateRandom = function(promptType) {
+  if (promptType === 'general') {
+    const troopTypes = ['melee', 'ranged', 'magic'];
+    const troopType = troopTypes[Math.floor(Math.random() * troopTypes.length)];
+    const variants = TROOP_VARIANTS[troopType];
+    const variant = variants[Math.floor(Math.random() * variants.length)];
+    const randomDescriptions = [
+      `${variant.name.toLowerCase()} ${troopType} warriors`,
+      `Elite ${variant.name.toLowerCase()} troops`,
+      `Heavy ${variant.name.toLowerCase()} soldiers`,
+      `Light ${variant.name.toLowerCase()} fighters`,
+      `Royal ${variant.name.toLowerCase()} guards`,
+      `Stealthy ${variant.name.toLowerCase()} units`,
+      `Aggressive ${variant.name.toLowerCase()} warriors`,
+      `Defensive ${variant.name.toLowerCase()} troops`
+    ];
+    const randomDesc = randomDescriptions[Math.floor(Math.random() * randomDescriptions.length)];
+    document.getElementById('promptInput').value = randomDesc;
+  } else {
+    const formations = ['phalanx', 'wedge', 'line', 'square', 'skirmish', 'column', 'echelon', 'hammer and anvil', 'crescent', 'circle', 'arrowhead', 'shield wall', 'pincer', 'turtle', 'spearhead', 'scatter', 'box', 'encirclement'];
+    const formation = formations[Math.floor(Math.random() * formations.length)];
+    const randomFormations = [
+      `Ancient ${formation} formation`,
+      `Aggressive ${formation} tactic`,
+      `Defensive ${formation} strategy`,
+      `Fast ${formation} movement`,
+      `Heavy ${formation} defense`,
+      `Mobile ${formation} approach`,
+      `Tactical ${formation} deployment`
+    ];
+    const randomForm = randomFormations[Math.floor(Math.random() * randomFormations.length)];
+    document.getElementById('promptInput').value = randomForm;
+  }
+};
+
+window.generateFromPrompt = function(promptType) {
+  const prompt = document.getElementById('promptInput').value.trim();
+  if (!prompt) {
+    alert('Please enter a description!');
+    return;
+  }
+  let result;
+  if (promptType === 'general') {
+    result = window.generateGeneralFromPrompt(prompt);
+    window.state.player = result;
+    window.state.playerHP = result.hp;
+    window.state.enemyHP = window.state.enemy.hp;
+    window.state.player.troops = result.troops;
+    window.state.player.prompt = prompt;
+    window.showPreview(promptType, result, prompt);
+  } else {
+    result = window.generateFormationFromPrompt(prompt);
+    window.state.playerFormation = result;
+    window.showPreview(promptType, result, prompt);
+  }
+};
+
+window.showPreview = function(promptType, result, prompt) {
+  const previewContainer = document.getElementById('previewContainer');
+  const preview3D = document.getElementById('preview3D');
+  const previewInfo = document.getElementById('previewInfo');
+  previewContainer.style.display = 'block';
+  if (promptType === 'general') {
+    previewInfo.innerHTML = `<button class="menu-btn" id="continueToFormationBtn" onclick="continueToFormation()">Continue to Formation</button>`;
+    // Create 3D preview of troops
+    if (window.createTroopPreview) window.createTroopPreview(preview3D, result, prompt);
+    setTimeout(() => {
+      const btn = document.getElementById('continueToFormationBtn');
+      if (btn) {
+        btn.onclick = () => {
+          btn.disabled = true;
+          continueToFormation();
+        };
+      }
+    }, 0);
+  } else {
+    const atkDiff = Math.round((result.bonus.atk-1)*100);
+    const defDiff = Math.round((result.bonus.def-1)*100);
+    const speedDiff = Math.round((result.bonus.speed-1)*100);
+    previewInfo.innerHTML = `<p>ATK ${atkDiff > 0 ? '+' : ''}${atkDiff}% | DEF ${defDiff > 0 ? '+' : ''}${defDiff}% | SPD ${speedDiff > 0 ? '+' : ''}${speedDiff}%</p><div style="margin-top: 15px;"><button class="menu-btn" onclick="goBackToTroops()" style="margin-right: 10px;">← Back</button><button class="menu-btn" onclick="startBattleFromPrompt()">Start Battle!</button></div>`;
+    if (window.createFormationPreview) window.createFormationPreview(preview3D, result, window.state.player.troops, window.state.player.prompt, window.state.player.color);
+  }
+};
+
+window.continueToFormation = function() {
+  if (window.enemyChooseFormation) window.enemyChooseFormation();
+};
+
+window.goBackToTroops = function() {
+  window.showPromptInput('general');
+};
+
+window.startBattleFromPrompt = function() {
+  setTimeout(window.startBattle, 800);
+};
 
 // --- Formation Selection Functions ---
 window.selectFormationFromPreview = function() {
