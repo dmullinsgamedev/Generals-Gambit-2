@@ -36,6 +36,7 @@ let state = {
   roundInitializing: false,
   roundEnded: false
 };
+window.state = state;
 
 // --- UI Elements ---
 const cardRow = document.getElementById('cardRow');
