@@ -1,0 +1,512 @@
+/* ============================================================================
+   GENERAL'S GAMBIT - STYLES
+   ============================================================================ */
+
+/* --- Base Styles --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Luckiest Guy', cursive;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  overflow: hidden;
+  color: white;
+}
+
+/* --- Canvas --- */
+#three-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
+/* --- UI Container --- */
+#ui {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#ui > * {
+  pointer-events: auto;
+}
+
+/* --- Card Row --- */
+.card-row {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 90vw;
+}
+
+.card {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #00e0ff;
+  border-radius: 10px;
+  padding: 15px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 150px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.card:hover {
+  background: rgba(0, 224, 255, 0.2);
+  border-color: #fff;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 224, 255, 0.3);
+}
+
+.card h3 {
+  color: #00e0ff;
+  margin-bottom: 8px;
+  font-size: 1.2em;
+}
+
+.card p {
+  font-size: 0.9em;
+  opacity: 0.9;
+  line-height: 1.3;
+}
+
+.custom-card {
+  background: rgba(255, 94, 98, 0.2);
+  border-color: #ff5e62;
+}
+
+.custom-card:hover {
+  background: rgba(255, 94, 98, 0.3);
+  border-color: #fff;
+}
+
+.custom-card h3 {
+  color: #ff5e62;
+}
+
+.formation-card {
+  background: rgba(142, 84, 233, 0.2);
+  border-color: #8e54e9;
+}
+
+.formation-card:hover {
+  background: rgba(142, 84, 233, 0.3);
+  border-color: #fff;
+}
+
+.formation-card h3 {
+  color: #8e54e9;
+}
+
+/* --- Prompt Container --- */
+.prompt-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.95);
+  border: 3px solid #00e0ff;
+  border-radius: 15px;
+  padding: 30px;
+  max-width: 600px;
+  width: 90vw;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.prompt-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.prompt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #00e0ff;
+  padding-bottom: 15px;
+}
+
+.prompt-header h2 {
+  color: #00e0ff;
+  font-size: 1.8em;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #00e0ff;
+  font-size: 2em;
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: rgba(0, 224, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.prompt-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#troopPrompt {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #00e0ff;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-family: inherit;
+  font-size: 1em;
+  resize: vertical;
+  min-height: 100px;
+}
+
+#troopPrompt:focus {
+  outline: none;
+  border-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 224, 255, 0.5);
+}
+
+.prompt-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.prompt-buttons button {
+  padding: 12px 24px;
+  border: 2px solid #00e0ff;
+  border-radius: 8px;
+  background: rgba(0, 224, 255, 0.2);
+  color: white;
+  font-family: inherit;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.prompt-buttons button:hover {
+  background: rgba(0, 224, 255, 0.4);
+  border-color: #fff;
+  transform: translateY(-2px);
+}
+
+.random-btn {
+  border-color: #ff5e62;
+  background: rgba(255, 94, 98, 0.2);
+}
+
+.random-btn:hover {
+  background: rgba(255, 94, 98, 0.4);
+}
+
+.generate-btn {
+  border-color: #8e54e9;
+  background: rgba(142, 84, 233, 0.2);
+}
+
+.generate-btn:hover {
+  background: rgba(142, 84, 233, 0.4);
+}
+
+.back-btn {
+  border-color: #888;
+  background: rgba(136, 136, 136, 0.2);
+}
+
+.back-btn:hover {
+  background: rgba(136, 136, 136, 0.4);
+}
+
+.confirm-btn {
+  border-color: #22ff22;
+  background: rgba(34, 255, 34, 0.2);
+}
+
+.confirm-btn:hover {
+  background: rgba(34, 255, 34, 0.4);
+}
+
+/* --- Suggestion Buttons --- */
+.suggestion-btn {
+  padding: 8px 16px;
+  border: 1px solid #00e0ff;
+  border-radius: 6px;
+  background: rgba(0, 224, 255, 0.1);
+  color: white;
+  font-family: inherit;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 5px;
+}
+
+.suggestion-btn:hover {
+  background: rgba(0, 224, 255, 0.3);
+  border-color: #fff;
+}
+
+/* --- Troop Preview --- */
+.troop-preview {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.troop-info {
+  flex: 1;
+}
+
+.troop-info h3 {
+  color: #00e0ff;
+  margin-bottom: 10px;
+  font-size: 1.4em;
+}
+
+.troop-info p {
+  margin-bottom: 8px;
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+.troop-3d-preview {
+  width: 200px;
+  height: 200px;
+  border: 2px solid #00e0ff;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* --- Formation Preview --- */
+.formation-info {
+  margin-bottom: 20px;
+}
+
+.formation-info h3 {
+  color: #8e54e9;
+  margin-bottom: 10px;
+  font-size: 1.4em;
+}
+
+.formation-info p {
+  margin-bottom: 8px;
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+.formation-3d-preview {
+  width: 300px;
+  height: 200px;
+  border: 2px solid #8e54e9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+  margin: 0 auto;
+}
+
+/* --- Scoreboard --- */
+#scoreboard {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.95);
+  border: 3px solid #00e0ff;
+  border-radius: 15px;
+  padding: 40px;
+  text-align: center;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+#scoreboard h2 {
+  color: #00e0ff;
+  font-size: 2.5em;
+  margin-bottom: 20px;
+}
+
+#scoreboard p {
+  font-size: 1.2em;
+  margin-bottom: 15px;
+  line-height: 1.4;
+}
+
+.menu-btn {
+  padding: 15px 30px;
+  border: 2px solid #00e0ff;
+  border-radius: 10px;
+  background: rgba(0, 224, 255, 0.2);
+  color: white;
+  font-family: inherit;
+  font-size: 1.2em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.menu-btn:hover {
+  background: rgba(0, 224, 255, 0.4);
+  border-color: #fff;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 224, 255, 0.3);
+}
+
+/* --- Round Message Overlay --- */
+#roundMessageOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+#roundMessageOverlay {
+  font-size: 4em;
+  font-weight: bold;
+  color: #00e0ff;
+  text-shadow: 0 0 20px rgba(0, 224, 255, 0.8);
+  animation: pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.1);
+  }
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+  .card-row {
+    bottom: 10px;
+    gap: 10px;
+  }
+  
+  .card {
+    min-width: 120px;
+    padding: 10px 15px;
+  }
+  
+  .card h3 {
+    font-size: 1em;
+  }
+  
+  .card p {
+    font-size: 0.8em;
+  }
+  
+  .prompt-container {
+    padding: 20px;
+    width: 95vw;
+  }
+  
+  .prompt-header h2 {
+    font-size: 1.5em;
+  }
+  
+  .troop-preview {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .troop-3d-preview {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .formation-3d-preview {
+    width: 250px;
+    height: 150px;
+  }
+  
+  #scoreboard {
+    padding: 30px;
+  }
+  
+  #scoreboard h2 {
+    font-size: 2em;
+  }
+  
+  #scoreboard p {
+    font-size: 1em;
+  }
+  
+  #roundMessageOverlay {
+    font-size: 3em;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-row {
+    flex-direction: column;
+    align-items: center;
+    bottom: 5px;
+  }
+  
+  .card {
+    width: 90vw;
+    max-width: 300px;
+  }
+  
+  .prompt-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .prompt-buttons button {
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .troop-3d-preview {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .formation-3d-preview {
+    width: 200px;
+    height: 120px;
+  }
+  
+  #roundMessageOverlay {
+    font-size: 2.5em;
+  }
+}
