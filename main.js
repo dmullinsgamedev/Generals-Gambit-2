@@ -126,7 +126,7 @@ function initializeThreeJS() {
 
 function createTerrain() {
   // Ground with terrain
-  const groundGeometry = new THREE.PlaneGeometry(50, 50, 20, 20);
+  const groundGeometry = new THREE.PlaneBufferGeometry(50, 50, 20, 20);
   const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x90EE90 });
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
   ground.rotation.x = -Math.PI / 2;
