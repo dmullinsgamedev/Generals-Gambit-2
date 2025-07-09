@@ -134,12 +134,16 @@ function createTerrain() {
   scene.add(ground);
   
   // Add terrain height variation
-  const vertices = groundGeometry.attributes.position.array;
-  for (let i = 0; i < vertices.length; i += 3) {
-    vertices[i + 2] = Math.random() * 0.5; // Add height variation
+  if (groundGeometry.attributes && groundGeometry.attributes.position) {
+    const vertices = groundGeometry.attributes.position.array;
+    for (let i = 0; i < vertices.length; i += 3) {
+      vertices[i + 2] = Math.random() * 0.5; // Add height variation
+    }
+    groundGeometry.attributes.position.needsUpdate = true;
+    groundGeometry.computeVertexNormals();
+  } else {
+    console.warn('Terrain height variation skipped - geometry attributes not available');
   }
-  groundGeometry.attributes.position.needsUpdate = true;
-  groundGeometry.computeVertexNormals();
   
   // Add trees
   for (let i = 0; i < 30; i++) {
@@ -210,7 +214,7 @@ function animate() {
 
 function startGame() {
   state.phase = 'setup';
-  showGeneralSelection();
+  showTroopDescriptionUI();
 }
 
 function showGeneralSelection() {
@@ -531,8 +535,8 @@ function nextRound() {
   if (state.round > ROUND_LIMIT) {
     endGame();
   } else {
-    state.phase = 'formation';
-    showFormationSelection();
+    state.phase = 'setup';
+    showTroopDescriptionUI();
   }
 }
 

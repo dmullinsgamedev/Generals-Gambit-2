@@ -365,10 +365,12 @@ window.confirmTroopSelection = function() {
       desc: `Custom ${customTroopData.type} general.`,
       customData: customTroopData
     };
-    
-    // Call the main game's general selection function
-    if (window.selectGeneral) {
-      window.selectGeneral(customGeneral);
+    // Set as player general
+    window.state = window.state || {};
+    window.state.player = customGeneral;
+    // Go directly to formation selection
+    if (window.showFormationSelection) {
+      window.showFormationSelection();
     }
   }
 };
