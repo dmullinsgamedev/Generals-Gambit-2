@@ -5,7 +5,7 @@
 // Import game data and troop generation
 import { GENERALS, FORMATIONS, ROUND_LIMIT, TROOP_TYPES, TROOP_VARIANTS } from './gameData.js';
 import { generateCustomTroopMesh, determineTroopVariantFromPrompt } from './troopGenerator.js';
-import { showTroopDescriptionUI, showFormationPreview } from './uiComponents.js';
+import { showTroopDescriptionUI, showFormationPreview, showPromptInput } from './uiComponents.js';
 
 // --- Global Variables ---
 let projectiles = [];
