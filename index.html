@@ -12,11 +12,24 @@
 </head>
 <body>
   <div id="ui">
-    <div class="card-row" id="cardRow"></div>
     <div id="promptContainer" class="prompt-container" style="display:none;"></div>
     <div id="scoreboard" style="display:none;"></div>
   </div>
+  
+  <!-- Hidden debug panel for assistant access -->
+  <div id="debugPanel" style="position:fixed;top:10px;right:10px;z-index:9999;display:none;">
+    <button id="getLogsBtn" style="background:rgba(0,0,0,0.8);color:white;border:1px solid #00e0ff;padding:5px;font-size:10px;">
+      Get Logs
+    </button>
+  </div>
   <canvas id="three-canvas"></canvas>
   <script type="module" src="main.js"></script>
+  <script type="module" src="renderer.js"></script>
+  <script type="module" src="battleSystem.js"></script>
+  <script type="module" src="troopManager.js"></script>
+  <script type="module" src="gameLoopManager.js"></script>
+  <script type="module" src="inputHandler.js"></script>
+  <script type="module" src="audioManager.js"></script>
+  <script type="module" src="formationManager.js"></script>
 </body>
 </html> 
