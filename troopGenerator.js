@@ -2,10 +2,13 @@
 // ADVANCED TROOP GENERATION SYSTEM
 // ============================================================================
 
-import { TROOP_VARIANTS } from './gameData.js';
+import { getTroopVariants } from './gameDataManager.js';
 
 // --- Custom 3D Troop Generation ---
 export function generateCustomTroopMesh(prompt, isPlayer, troopColor, forcedBodyType, forcedSubtype) {
+  if (typeof prompt !== 'string') {
+    prompt = String(prompt || '');
+  }
   const lowerPrompt = prompt.toLowerCase();
 
   // --- ROLE/CLASS DETECTION ---
@@ -532,7 +535,7 @@ function generateInsectoidTroopMesh(lowerPrompt, role, subtype, skinMaterial, ar
 }
 
 function determineTroopVariant(prompt, troopType) {
-  const variants = TROOP_VARIANTS[troopType];
+  const variants = getTroopVariants()[troopType];
   let bestMatch = variants[0];
   let maxScore = 0;
   
@@ -869,7 +872,15 @@ function addProceduralDetails(group, prompt, color, gray, dark, accent) {
 // --- Troop Variant Determination ---
 export function determineTroopVariantFromPrompt(prompt, troopType) {
   const lowerPrompt = prompt.toLowerCase();
-  const variants = TROOP_VARIANTS[troopType];
+  const variants = getTroopVariants()[troopType];
+  
+  // Add error handling for invalid troop types
+  if (!variants || variants.length === 0) {
+    console.warn(`No variants found for troop type: ${troopType}. Using default melee variant.`);
+    const defaultVariants = getTroopVariants()['melee'];
+    return defaultVariants ? defaultVariants[0] : { name: 'default', weapon: 'sword', keywords: [] };
+  }
+  
   let bestMatch = variants[0];
   let maxScore = 0;
   
@@ -895,6 +906,9 @@ export function determineTroopVariantFromPrompt(prompt, troopType) {
 
 // --- Custom 3D General Generation ---
 export function generateCustomGeneralMesh(prompt, isPlayer, generalColor) {
+  if (typeof prompt !== 'string') {
+    prompt = String(prompt || '');
+  }
   const lowerPrompt = prompt.toLowerCase();
   const group = new THREE.Group();
   
@@ -981,7 +995,7 @@ export function generateCustomGeneralMesh(prompt, isPlayer, generalColor) {
 }
 
 function determineGeneralVariant(prompt, generalType) {
-  const variants = TROOP_VARIANTS[generalType];
+  const variants = getTroopVariants()[generalType];
   let bestMatch = variants[0];
   let maxScore = 0;
   

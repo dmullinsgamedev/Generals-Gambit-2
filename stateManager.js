@@ -142,6 +142,39 @@ class SimpleStateManager {
       enemyHP: this.state.enemyHP
     };
   }
+  
+  // Methods needed by main.js
+  getPlayerTroopType() {
+    return this.state.player?.troopType || 'melee';
+  }
+  
+  getEnemyTroopType() {
+    return this.state.enemy?.troopType || 'melee';
+  }
+  
+  getPlayerColor() {
+    return this.state.player?.color || '#00ff00';
+  }
+  
+  getEnemyColor() {
+    return this.state.enemy?.color || '#ff0000';
+  }
+  
+  getPlayerFormation() {
+    return this.state.playerFormation;
+  }
+  
+  getEnemyFormation() {
+    return this.state.enemyFormation;
+  }
+  
+  getPlayerGeneral() {
+    return this.state.player;
+  }
+  
+  getEnemyGeneral() {
+    return this.state.enemy;
+  }
 }
 
 // Create and export singleton instance

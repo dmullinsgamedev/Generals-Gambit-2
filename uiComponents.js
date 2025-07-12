@@ -3,8 +3,9 @@
 // ============================================================================
 
 import { generateCustomTroopMesh, determineTroopVariantFromPrompt } from './troopGenerator.js';
-import { GENERALS, FORMATIONS, TROOP_TYPES, TROOP_VARIANTS } from './gameData.js';
+import { getGenerals, getFormations, getTroopTypes, getTroopVariants } from './gameDataManager.js';
 import { generateGeneralFromPrompt, generateFormationFromPrompt } from './main.js';
+import { gameState } from './src/core/GameState.js';
 
 // --- Formation Preview System ---
 export function showFormationPreview(formation) {
@@ -52,13 +53,15 @@ export function showFormationPreview(formation) {
 
 // Show the prompt input for troop or formation
 export function showPromptInput(type) {
+  console.log('showPromptInput called with type:', type);
   const promptContainer = document.getElementById('promptContainer');
+  console.log('promptContainer found:', !!promptContainer);
   promptContainer.style.display = 'block';
   let enemyText = '';
   if (type === 'general') {
-    enemyText = window.state && window.state.enemy && window.state.enemy.name ? `(Enemy chose: ${window.state.enemy.name})` : '';
+    enemyText = gameState.enemy && gameState.enemy.name ? `(Enemy chose: ${gameState.enemy.name})` : '';
   } else if (type === 'formation') {
-    enemyText = window.state && window.state.enemyFormation && window.state.enemyFormation.name ? `(Enemy formation: ${window.state.enemyFormation.name})` : '';
+    enemyText = gameState.enemyFormation && gameState.enemyFormation.name ? `(Enemy formation: ${gameState.enemyFormation.name})` : '';
   }
   promptContainer.innerHTML = `
     <h2 style="font-size:2.2em;margin-bottom:0.3em;">DESCRIBE YOUR ${type === 'general' ? 'TROOPS' : 'FORMATION'}</h2>
@@ -101,31 +104,30 @@ function generateFromPrompt(promptType, showPreviewOnly) {
   if (promptType === 'general') {
     result = window.generateGeneralFromPrompt(prompt);
     log('INFO', ['Generated general:', result]);
-    if (window.state.player && window.state.player.troops && window.state.player.troops !== result.troops) {
-      log('WARN', ['Attempted to overwrite player troop type during general generation. Old:', window.state.player.troops, 'New:', result.troops]);
+    if (gameState.player && gameState.player.troops && gameState.player.troops !== result.troops) {
+      log('WARN', ['Attempted to overwrite player troop type during general generation. Old:', gameState.player.troops, 'New:', result.troops]);
     }
-    window.state.player = result;
-    window.state.playerHP = result.hp;
+    gameState.setPlayer(result);
     // Generate enemy if not already generated
-    if (!window.state.enemy) {
-      const enemyGeneral = GENERALS[Math.floor(Math.random() * GENERALS.length)];
-      window.state.enemy = enemyGeneral;
+    if (!gameState.enemy) {
+      const generals = getGenerals();
+      const enemyGeneral = generals[Math.floor(Math.random() * generals.length)];
+      gameState.setEnemy(enemyGeneral);
       log('INFO', ['Generated enemy:', enemyGeneral]);
     }
-    window.state.enemyHP = window.state.enemy.hp;
-    window.state.player.prompt = prompt;
     window.showTroopPreviewCombined(result, prompt);
   } else {
     // Only update the formation, not the player troop type or color
     result = window.generateFormationFromPrompt(prompt);
     log('INFO', ['Generated formation:', result]);
     // Safeguard: do not overwrite player troop type or color
-    if (window.state.player && result.troops && window.state.player.troops !== result.troops) {
-      log('WARN', ['Attempted to overwrite player troop type during formation generation. Ignored. Old:', window.state.player.troops, 'Attempted:', result.troops]);
+    if (gameState.player && result.troops && gameState.player.troops !== result.troops) {
+      log('WARN', ['Attempted to overwrite player troop type during formation generation. Ignored. Old:', gameState.player.troops, 'Attempted:', result.troops]);
       // Remove any accidental troop type from result
       delete result.troops;
     }
-    window.state.playerFormation = result;
+    gameState.setPlayerFormation(result);
+    window.currentFormation = result; // Store for battle
     window.showPreview(promptType, result, prompt);
   }
 }
@@ -169,7 +171,7 @@ window.generateRandom = function(promptType) {
   if (promptType === 'general') {
     const troopTypes = ['melee', 'ranged', 'magic'];
     const troopType = troopTypes[Math.floor(Math.random() * troopTypes.length)];
-    const variants = TROOP_VARIANTS[troopType];
+    const variants = getTroopVariants()[troopType];
     const variant = variants[Math.floor(Math.random() * variants.length)];
     const randomDescriptions = [
       `${variant.name.toLowerCase()} ${troopType} warriors`,
@@ -222,7 +224,11 @@ window.continueToFormation = function() {
   // Hide the prompt container
   const promptContainer = document.getElementById('promptContainer');
   promptContainer.style.display = 'none';
-  
+  // Clear the preview container
+  const preview3D = document.getElementById('preview3D');
+  if (preview3D) {
+    preview3D.innerHTML = '';
+  }
   // Generate enemy formation and show formation selection
   if (window.enemyChooseFormation) {
     window.enemyChooseFormation();
@@ -239,32 +245,41 @@ window.startBattleFromPrompt = function() {
   if (promptContainer) {
     promptContainer.style.display = 'none';
   }
+  // Clear the preview container
+  const preview3D = document.getElementById('preview3D');
+  if (preview3D) {
+    preview3D.innerHTML = '';
+  }
 
   // Always set the player's formation to the currently previewed formation before battle
   if (window.currentFormation) {
-    window.state.playerFormation = window.currentFormation;
+    gameState.setPlayerFormation(window.currentFormation);
+    // Also set in simpleStateManager for compatibility with main.js battle logic
+    if (window.simpleStateManager) {
+      window.simpleStateManager.setPlayerFormation(window.currentFormation);
+    }
   }
 
   // Generate enemy if not already generated
-  if (!window.state.enemy) {
-    const enemyGeneral = GENERALS[Math.floor(Math.random() * GENERALS.length)];
-    window.state.enemy = enemyGeneral;
+  if (!gameState.enemy) {
+    const generals = getGenerals();
+    const enemyGeneral = generals[Math.floor(Math.random() * generals.length)];
+    gameState.setEnemy(enemyGeneral);
     console.log('Generated enemy general:', enemyGeneral);
   }
 
-  // Generate enemy formation if not already generated
-  if (!window.state.enemyFormation) {
-    const enemyFormation = FORMATIONS[Math.floor(Math.random() * FORMATIONS.length)];
-    window.state.enemyFormation = enemyFormation;
-    console.log('Generated enemy formation:', enemyFormation);
+  // Generate enemy formation
+  const enemyFormation = getFormations()[Math.floor(Math.random() * getFormations().length)];
+  gameState.setEnemyFormation(enemyFormation);
+  // Also set in simpleStateManager for compatibility
+  if (window.simpleStateManager) {
+    window.simpleStateManager.setEnemyFormation(enemyFormation);
   }
 
-  // Start the battle after a short delay
-  setTimeout(() => {
-    if (window.startBattle) {
-      window.startBattle();
-    }
-  }, 800);
+  // Start battle
+  if (window.startBattle) {
+    window.startBattle();
+  }
 };
 
 // --- Formation Selection Functions ---
@@ -276,6 +291,170 @@ window.selectFormationFromPreview = function() {
       window.selectFormation(formation);
     }
   }
+};
+
+// --- Formation Preview ---
+window.createFormationPreview = function(container, formation, prompt) {
+  // Clear previous content
+  container.innerHTML = '';
+  
+  // Add some basic styling to the container
+  container.style.position = 'relative';
+  container.style.overflow = 'hidden';
+  
+  // Add overlay label for formation name
+  const label = document.createElement('div');
+  label.textContent = (formation.name || 'Formation').toUpperCase();
+  label.style.position = 'absolute';
+  label.style.top = '8px';
+  label.style.left = '50%';
+  label.style.transform = 'translateX(-50%)';
+  label.style.color = '#fff';
+  label.style.fontWeight = 'bold';
+  label.style.fontSize = '1.1em';
+  label.style.textShadow = '0 0 4px #000, 0 0 2px #000';
+  label.style.pointerEvents = 'none';
+  container.appendChild(label);
+
+  // Simple 3D formation preview
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
+  
+  const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+  camera.position.set(0, 3, 0.01); // Top-down
+  camera.lookAt(0, 0, 0);
+  
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setClearColor(0x000000, 0);
+  container.appendChild(renderer.domElement);
+  
+  // Add lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  scene.add(ambientLight);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  dirLight.position.set(5, 10, 7);
+  scene.add(dirLight);
+  
+  // Add ground plane
+  const groundGeo = new THREE.PlaneGeometry(3, 3);
+  const groundMat = new THREE.MeshLambertMaterial({ color: 0x222222, side: THREE.DoubleSide });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.01;
+  scene.add(ground);
+  
+  // Get formation data and create troops based on actual formation
+  const formationName = (formation.name || '').toLowerCase();
+  const troopCount = 12; // Show 12 troops in preview
+  let positions = [];
+  if (formationName.includes('line')) {
+    for (let i = 0; i < troopCount; i++) {
+      positions.push([(i - troopCount/2) * 0.25, 0, 0]);
+    }
+  } else if (formationName.includes('wedge') || formationName.includes('arrow')) {
+    let troopIndex = 0;
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col <= row; col++) {
+        if (troopIndex < troopCount) {
+          positions.push([(col - row/2) * 0.3, 0, row * 0.3]);
+          troopIndex++;
+        }
+      }
+    }
+  } else if (formationName.includes('square') || formationName.includes('box')) {
+    const side = Math.ceil(Math.sqrt(troopCount));
+    for (let row = 0; row < side; row++) {
+      for (let col = 0; col < side; col++) {
+        if (positions.length < troopCount) {
+          positions.push([(col - side/2) * 0.25, 0, (row - side/2) * 0.25]);
+        }
+      }
+    }
+  } else if (formationName.includes('circle')) {
+    for (let i = 0; i < troopCount; i++) {
+      const angle = (i / troopCount) * Math.PI * 2;
+      const radius = 1.0;
+      positions.push([Math.cos(angle) * radius, 0, Math.sin(angle) * radius]);
+    }
+  } else if (formationName.includes('skirmish')) {
+    // Skirmish: scattered, loose group
+    for (let i = 0; i < troopCount; i++) {
+      positions.push([
+        (Math.random() - 0.5) * 2,
+        0,
+        (Math.random() - 0.5) * 1.2
+      ]);
+    }
+  } else {
+    // Default: scattered
+    for (let i = 0; i < troopCount; i++) {
+      positions.push([
+        (Math.random() - 0.5) * 2,
+        0,
+        (Math.random() - 0.5) * 2
+      ]);
+    }
+  }
+  // Create troops at calculated positions
+  positions.forEach((pos, i) => {
+    const geometry = new THREE.SphereGeometry(0.08, 12, 12);
+    const material = new THREE.MeshLambertMaterial({ color: 0x1da1f2 });
+    const troop = new THREE.Mesh(geometry, material);
+    troop.position.set(pos[0], pos[1] + 0.08, pos[2]);
+    troop.castShadow = true;
+    scene.add(troop);
+  });
+  
+  function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+  }
+  animate();
+};
+
+// --- Troop Preview ---
+window.createTroopPreview = function(container, result, prompt) {
+  // Clear previous content
+  container.innerHTML = '';
+
+  // Use the advanced troop generator for preview
+  const troopData = generateCustomTroopMesh(prompt || (result && result.name) || '', true, result && result.color);
+  const troopMesh = troopData.mesh || troopData;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ alpha: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  container.appendChild(renderer.domElement);
+
+  // Add lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  scene.add(ambientLight);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  dirLight.position.set(5, 10, 7);
+  scene.add(dirLight);
+
+  // Add the generated troop mesh
+  scene.add(troopMesh);
+
+  camera.position.z = 3;
+
+  function animate() {
+    requestAnimationFrame(animate);
+    troopMesh.rotation.y += 0.01;
+    renderer.render(scene, camera);
+  }
+  animate();
+};
+
+// --- Enemy Formation Selection ---
+window.enemyChooseFormation = function() {
+  const enemyFormation = getFormations()[Math.floor(Math.random() * getFormations().length)];
+  gameState.setEnemyFormation(enemyFormation);
+  
+  // Show formation selection for player
+  window.showPromptInput('formation');
 };
 
 export function hideFormationPreview() {

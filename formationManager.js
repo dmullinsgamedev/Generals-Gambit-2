@@ -2,7 +2,8 @@
 // Handles formation positioning, preview, generation, and type detection
 
 import { simpleLogger } from './logger.js';
-import { FORMATIONS } from './gameData.js';
+import { getFormations } from './gameDataManager.js';
+import { terrainManager } from './terrainManager.js';
 
 class FormationManager {
   constructor() {
@@ -119,7 +120,8 @@ class FormationManager {
     }
 
     // Find the matching FORMATIONS entry
-    const formationObj = FORMATIONS.find(f => f.name.toLowerCase() === bestFormation) || FORMATIONS.find(f => f.name.toLowerCase() === 'line');
+    const formations = getFormations();
+    const formationObj = formations.find(f => f.name.toLowerCase() === bestFormation) || formations.find(f => f.name.toLowerCase() === 'line');
 
     // Allow bonus/desc overrides from prompt
     let atkBonus = formationObj.bonus.atk;
@@ -170,8 +172,9 @@ class FormationManager {
     troops.forEach((troop, index) => {
       const x = baseX + (index - troops.length / 2) * spacing;
       const z = baseZ;
-      troop.mesh.position.set(x, 10, z);
-      troop.position = { x: x, y: 10, z: z };
+      const terrainHeight = terrainManager.getTerrainHeightAt(x, z);
+      troop.mesh.position.set(x, terrainHeight + 0.5, z);
+      troop.position = { x: x, y: terrainHeight + 0.5, z: z };
       troop.mesh.rotation.y = isPlayer ? 0 : Math.PI;
     });
   }
@@ -184,8 +187,9 @@ class FormationManager {
       const col = index % rows;
       const x = baseX + (col - row) * spacing * 0.5;
       const z = baseZ + row * spacing * 0.8 * (isPlayer ? 1 : -1);
-      troop.mesh.position.set(x, 10, z);
-      troop.position = { x: x, y: 10, z: z };
+      const terrainHeight = terrainManager.getTerrainHeightAt(x, z);
+      troop.mesh.position.set(x, terrainHeight + 0.5, z);
+      troop.position = { x: x, y: terrainHeight + 0.5, z: z };
       troop.mesh.rotation.y = isPlayer ? 0 : Math.PI;
     });
   }
@@ -196,8 +200,9 @@ class FormationManager {
       const angle = (index / troops.length) * 2 * Math.PI;
       const x = baseX + Math.cos(angle) * radius;
       const z = baseZ + Math.sin(angle) * radius;
-      troop.mesh.position.set(x, 10, z);
-      troop.position = { x: x, y: 10, z: z };
+      const terrainHeight = terrainManager.getTerrainHeightAt(x, z);
+      troop.mesh.position.set(x, terrainHeight + 0.5, z);
+      troop.position = { x: x, y: terrainHeight + 0.5, z: z };
       troop.mesh.rotation.y = isPlayer ? 0 : Math.PI;
     });
   }
@@ -209,8 +214,9 @@ class FormationManager {
       const col = index % side;
       const x = baseX + (col - side/2) * 0.8;
       const z = baseZ + (row - side/2) * 0.8;
-      troop.mesh.position.set(x, 10, z);
-      troop.position = { x: x, y: 10, z: z };
+      const terrainHeight = terrainManager.getTerrainHeightAt(x, z);
+      troop.mesh.position.set(x, terrainHeight + 0.5, z);
+      troop.position = { x: x, y: terrainHeight + 0.5, z: z };
       troop.mesh.rotation.y = isPlayer ? 0 : Math.PI;
     });
   }
@@ -309,17 +315,19 @@ class FormationManager {
 
   // Generate random enemy formation
   generateRandomEnemyFormation() {
-    return FORMATIONS[Math.floor(Math.random() * FORMATIONS.length)];
+    const formations = getFormations();
+  return formations[Math.floor(Math.random() * formations.length)];
   }
 
   // Get formation by name
   getFormationByName(name) {
-    return FORMATIONS.find(f => f.name.toLowerCase() === name.toLowerCase());
+    const formations = getFormations();
+  return formations.find(f => f.name.toLowerCase() === name.toLowerCase());
   }
 
   // Get all available formations
   getAllFormations() {
-    return FORMATIONS;
+    return getFormations();
   }
 }
 
