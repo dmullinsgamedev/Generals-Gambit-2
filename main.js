@@ -42,6 +42,9 @@ battleLogicManager.initialize();
 // Make logs accessible to assistant
 window.getGameLogs = getGameLogs;
 
+// Make formationManager globally accessible for UI components
+window.formationManager = formationManager;
+
 // ============================================================================
 // GAME SETUP
 // ============================================================================
@@ -151,7 +154,7 @@ function generateEnemy() {
   
   // Generate random enemy general
   const enemyGeneralData = gameDataManager.getRandomGeneral();
-  enemyGeneral = createGeneral(false, enemyGeneralData);
+  simpleStateManager.setEnemy(enemyGeneralData);
   
   simpleLogger.addLog('INFO', ['Enemy generated:', enemyGeneralData.name]);
 }
@@ -284,18 +287,27 @@ function createGenerals() {
 
 function createGeneral(isPlayer, generalData) {
   simpleLogger.addLog('DEBUG', ['createGeneral called', isPlayer, generalData]);
+  // Handle null generalData
+  if (!generalData) {
+    simpleLogger.addLog('ERROR', ['generalData is null! Creating default general']);
+    generalData = {
+      name: isPlayer ? 'Player General' : 'Enemy General',
+      description: 'Default general',
+      troopType: 'melee',
+      variant: 'default',
+      hp: 150
+    };
+  }
   const variant = generalData.variant || 'default';
   const troopType = generalData.troopType || 'infantry';
   const z = isPlayer ? -15 : 15;
-  // Generate mesh - function expects (prompt, isPlayer, generalColor)
+  // Use advanced mesh generator
   const prompt = generalData.name || generalData.description || 'general';
-  const mesh = generateCustomGeneralMesh(prompt, isPlayer, isPlayer ? 0x1da1f2 : 0xff5e62);
-  
+  const { mesh } = generateCustomGeneralMesh(prompt, isPlayer, isPlayer ? 0x1da1f2 : 0xff5e62);
   // Position on terrain from the start
   const terrainHeight = getTerrainHeightAt(0, z);
   mesh.position.set(0, terrainHeight + 0.5, z);
   mesh.castShadow = true;
-  
   // Get general stats from config
   const generalHealth = configManager.get('troops', 'generalHealth', 150);
   const generalAttack = configManager.get('troops', 'generalAttack', 15);
@@ -322,16 +334,13 @@ function createGeneral(isPlayer, generalData) {
 function createTroop(isPlayer, troopType, color) {
   const variant = determineTroopVariantFromPrompt(`${troopType} troops`, troopType);
   const z = isPlayer ? -10 : 10;
-  
-  // Generate mesh - function returns { mesh, bodyType, subtype }
+  // Use advanced mesh generator
   const troopData = generateCustomTroopMesh(`${troopType} troops`, isPlayer, color);
   const mesh = troopData.mesh;
-  
   // Position on terrain from the start
   const terrainHeight = getTerrainHeightAt(0, z);
   mesh.position.set(0, terrainHeight + 0.5, z);
   mesh.castShadow = true;
-  
   const troop = {
     hp: 100,
     maxHp: 100,
@@ -345,7 +354,6 @@ function createTroop(isPlayer, troopType, color) {
     type: troopType,
     variant: variant
   };
-  
   return troop;
 }
 
@@ -371,11 +379,14 @@ function nextRound() {
   // Clear current battle
   clearTroops();
   
-  // Generate new enemy
-  generateEnemy();
+  // Reset player and enemy choices for new round
+  simpleStateManager.setPlayer(null);
+  simpleStateManager.setPlayerFormation(null);
+  simpleStateManager.setEnemy(null);
+  simpleStateManager.setEnemyFormation(null);
   
-  // Start new battle
-  startBattle();
+  // Show troop selection for new round
+  showTroopSelection();
 }
 
 // ============================================================================

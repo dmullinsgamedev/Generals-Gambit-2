@@ -136,12 +136,9 @@ class TroopManager {
 
     // Private method to create troop mesh (placeholder for existing logic)
     _createTroopMesh(isPlayer, troopType, color) {
-        // This would integrate with the existing troop generation logic
-        // For now, return a simple placeholder
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshLambertMaterial({ color: color || (isPlayer ? 0x1da1f2 : 0xff5e62) });
-        const mesh = new THREE.Mesh(geometry, material);
-        
+        // Use the advanced troop mesh generator
+        const prompt = `${troopType} warrior`;
+        const { mesh } = generateCustomTroopMesh(prompt, isPlayer, color);
         return {
             hp: 100,
             maxHp: 100,
@@ -158,14 +155,10 @@ class TroopManager {
 
     // Private method to create general mesh (placeholder for existing logic)
     _createGeneralMesh(isPlayer, generalData) {
-        // This would integrate with the existing general generation logic
-        // For now, return a simple placeholder
-        const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
-        const material = new THREE.MeshLambertMaterial({ 
-            color: generalData.color || (isPlayer ? 0x1da1f2 : 0xff5e62) 
-        });
-        const mesh = new THREE.Mesh(geometry, material);
-        
+        // Use the advanced general mesh generator
+        const prompt = generalData.prompt || generalData.name || 'general';
+        const color = generalData.color || (isPlayer ? 0x1da1f2 : 0xff5e62);
+        const { mesh } = generateCustomGeneralMesh(prompt, isPlayer, color);
         return {
             hp: generalData.hp || 100,
             maxHp: generalData.hp || 100,

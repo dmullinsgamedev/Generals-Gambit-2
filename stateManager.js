@@ -55,14 +55,14 @@ class SimpleStateManager {
   
   setPlayer(player) { 
     this.state.player = player; 
-    this.state.playerHP = player.hp || 0;
-    console.log(`State change: player -> ${player.name || 'unknown'}`);
+    this.state.playerHP = player?.hp || 0;
+    console.log(`State change: player -> ${player?.name || 'none'}`);
   }
   
   setEnemy(enemy) { 
     this.state.enemy = enemy; 
-    this.state.enemyHP = enemy.hp || 0;
-    console.log(`State change: enemy -> ${enemy.name || 'unknown'}`);
+    this.state.enemyHP = enemy?.hp || 0;
+    console.log(`State change: enemy -> ${enemy?.name || 'none'}`);
   }
   
   setPlayerFormation(formation) { 

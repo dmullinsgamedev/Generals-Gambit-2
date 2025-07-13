@@ -61,6 +61,21 @@ class FormationManager {
       case 'square':
         this.applySquareFormation(troops, baseX, baseZ, isPlayer);
         break;
+      case 'skirmish':
+        this.applySkirmishFormation(troops, baseX, baseZ, isPlayer);
+        break;
+      case 'scatter':
+        this.applyScatterFormation(troops, baseX, baseZ, isPlayer);
+        break;
+      case 'column':
+        this.applyColumnFormation(troops, baseX, baseZ, isPlayer);
+        break;
+      case 'pincer':
+        this.applyPincerFormation(troops, baseX, baseZ, isPlayer);
+        break;
+      case 'turtle':
+        this.applyTurtleFormation(troops, baseX, baseZ, isPlayer);
+        break;
       default:
         console.log('Applying DEFAULT LINE formation (no specific match found)');
         this.applyLineFormation(troops, baseX, baseZ, isPlayer);
@@ -89,6 +104,9 @@ class FormationManager {
         break;
       case 'skirmish':
         this.applySkirmishFormationPreview(troops);
+        break;
+      case 'scatter':
+        this.applyScatterFormationPreview(troops);
         break;
       case 'column':
         this.applyColumnFormationPreview(troops);
@@ -154,13 +172,24 @@ class FormationManager {
 
   // Detect formation type from formation name
   detectFormationType(formationName) {
-    if (formationName.includes('line') || formationName.includes('wall') || formationName.includes('echelon') || formationName.includes('skirmish') || formationName.includes('column')) {
+    // Check for specific formations first
+    if (formationName.includes('skirmish')) {
+      return 'skirmish';
+    } else if (formationName.includes('scatter')) {
+      return 'scatter';
+    } else if (formationName.includes('column')) {
+      return 'column';
+    } else if (formationName.includes('pincer')) {
+      return 'pincer';
+    } else if (formationName.includes('turtle')) {
+      return 'turtle';
+    } else if (formationName.includes('line') || formationName.includes('wall') || formationName.includes('echelon')) {
       return 'line';
-    } else if (formationName.includes('wedge') || formationName.includes('triangle') || formationName.includes('spearhead') || formationName.includes('arrowhead') || formationName.includes('hammer and anvil') || formationName.includes('crescent') || formationName.includes('pincer')) {
+    } else if (formationName.includes('wedge') || formationName.includes('triangle') || formationName.includes('spearhead') || formationName.includes('arrowhead') || formationName.includes('hammer and anvil') || formationName.includes('crescent')) {
       return 'wedge';
     } else if (formationName.includes('circle') || formationName.includes('circular') || formationName.includes('encirclement')) {
       return 'circle';
-    } else if (formationName.includes('square') || formationName.includes('box') || formationName.includes('phalanx') || formationName.includes('testudo') || formationName.includes('shield wall') || formationName.includes('turtle')) {
+    } else if (formationName.includes('square') || formationName.includes('box') || formationName.includes('phalanx') || formationName.includes('testudo') || formationName.includes('shield wall')) {
       return 'square';
     }
     return 'line'; // Default
@@ -221,6 +250,71 @@ class FormationManager {
     });
   }
 
+  applySkirmishFormation(troops, baseX, baseZ, isPlayer) {
+    troops.forEach((troop, index) => {
+      // Scattered positioning for skirmish formation
+      const x = baseX + (Math.random() - 0.5) * troops.length * 0.7;
+      const z = baseZ + (Math.random() - 0.5) * 2;
+      const terrainHeight = terrainManager.getTerrainHeightAt(x, z);
+      troop.mesh.position.set(x, terrainHeight + 0.5, z);
+      troop.position = { x: x, y: terrainHeight + 0.5, z: z };
+      troop.mesh.rotation.y = isPlayer ? 0 : Math.PI;
+    });
+  }
+
+  applyColumnFormation(troops, baseX, baseZ, isPlayer) {
+    troops.forEach((troop, index) => {
+      // Column formation - troops in a single file
+      const x = baseX;
+      const z = baseZ + index * 0.8 * (isPlayer ? 1 : -1);
+      const terrainHeight = terrainManager.getTerrainHeightAt(x, z);
+      troop.mesh.position.set(x, terrainHeight + 0.5, z);
+      troop.position = { x: x, y: terrainHeight + 0.5, z: z };
+      troop.mesh.rotation.y = isPlayer ? 0 : Math.PI;
+    });
+  }
+
+  applyPincerFormation(troops, baseX, baseZ, isPlayer) {
+    const half = Math.ceil(troops.length / 2);
+    troops.forEach((troop, index) => {
+      // Pincer formation - two groups on flanks
+      const group = index < half ? -1 : 1;
+      const x = baseX + group * 2 * 0.8 + (Math.random() - 0.5) * 0.8;
+      const z = baseZ + (index % half - half/2) * 0.8;
+      const terrainHeight = terrainManager.getTerrainHeightAt(x, z);
+      troop.mesh.position.set(x, terrainHeight + 0.5, z);
+      troop.position = { x: x, y: terrainHeight + 0.5, z: z };
+      troop.mesh.rotation.y = isPlayer ? 0 : Math.PI;
+    });
+  }
+
+  applyTurtleFormation(troops, baseX, baseZ, isPlayer) {
+    const side = Math.ceil(Math.sqrt(troops.length));
+    troops.forEach((troop, index) => {
+      // Turtle formation - compact defensive square
+      const row = Math.floor(index / side);
+      const col = index % side;
+      const x = baseX + (col - side/2) * 0.7;
+      const z = baseZ + (row - side/2) * 0.7;
+      const terrainHeight = terrainManager.getTerrainHeightAt(x, z);
+      troop.mesh.position.set(x, terrainHeight + 0.5, z);
+      troop.position = { x: x, y: terrainHeight + 0.5, z: z };
+      troop.mesh.rotation.y = isPlayer ? 0 : Math.PI;
+    });
+  }
+
+  applyScatterFormation(troops, baseX, baseZ, isPlayer) {
+    troops.forEach((troop, index) => {
+      // Scatter formation - completely random positioning
+      const x = baseX + (Math.random() - 0.5) * troops.length * 1.0;
+      const z = baseZ + (Math.random() - 0.5) * 3;
+      const terrainHeight = terrainManager.getTerrainHeightAt(x, z);
+      troop.mesh.position.set(x, terrainHeight + 0.5, z);
+      troop.position = { x: x, y: terrainHeight + 0.5, z: z };
+      troop.mesh.rotation.y = isPlayer ? 0 : Math.PI;
+    });
+  }
+
   // Formation application methods for preview positioning
   applyLineFormationPreview(troops) {
     const rows = 1;
@@ -270,6 +364,14 @@ class FormationManager {
     troops.forEach((troop, index) => {
       const x = (Math.random() - 0.5) * troops.length * 0.7;
       const z = (Math.random() - 0.5) * 2;
+      troop.position.set(x, 0, z);
+    });
+  }
+
+  applyScatterFormationPreview(troops) {
+    troops.forEach((troop, index) => {
+      const x = (Math.random() - 0.5) * troops.length * 1.0;
+      const z = (Math.random() - 0.5) * 3;
       troop.position.set(x, 0, z);
     });
   }

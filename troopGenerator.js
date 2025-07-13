@@ -112,7 +112,9 @@ export function generateCustomTroopMesh(prompt, isPlayer, troopColor, forcedBody
   } else if (bodyType === 'insectoid') {
     group = generateInsectoidTroopMesh(lowerPrompt, role, subtype, skinMaterial, armorMaterial, darkMaterial, accentMaterial, clothMaterial, greenMaterial);
   } else {
-    group = generateBipedTroopMesh(lowerPrompt, role, subtype, skinMaterial, armorMaterial, darkMaterial, accentMaterial, clothMaterial, goldMaterial);
+    // Fallback: always use full biped mesh for unknown types
+    console.warn('[TroopGen] Unknown bodyType:', bodyType, 'for prompt:', prompt, '| Using biped mesh as fallback.');
+    group = generateBipedTroopMesh(lowerPrompt, role, 'default', skinMaterial, armorMaterial, darkMaterial, accentMaterial, clothMaterial, goldMaterial);
   }
 
   // Return both the mesh and the chosen bodyType/subtype for saving
@@ -991,7 +993,8 @@ export function generateCustomGeneralMesh(prompt, isPlayer, generalColor) {
   // Add procedural visual details based on description for generals
   addGeneralProceduralDetails(group, lowerPrompt, color.getHex(), gray, dark, accent, gold, silver);
   
-  return group;
+  // At the end, return an object with mesh property
+  return { mesh: group };
 }
 
 function determineGeneralVariant(prompt, generalType) {
