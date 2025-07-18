@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mannequin General Preview</title>
+  <style>
+    body { margin: 0; background: #bfe3f7; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script type="module">
+// Import Three.js as ES6 module
+import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
+
+// Import all the modular general mesh generators
+import { generateKnightMesh } from './src/generation/Knight.js';
+import { generateSorcererMesh } from './src/generation/Sorcerer.js';
+import { generateRoyaltyMesh } from './src/generation/Royalty.js';
+import { generateRogueMesh } from './src/generation/Rogue.js';
+import { generatePriestMesh } from './src/generation/Priest.js';
+import { generateBarbarianMesh } from './src/generation/Barbarian.js';
+import { generateDruidMesh } from './src/generation/Druid.js';
+import { generateNecromancerMesh } from './src/generation/Necromancer.js';
+import { generateGoblinChiefMesh } from './src/generation/GoblinChief.js';
+import { generateDragonKnightMesh } from './src/generation/DragonKnight.js';
+import { generateSamuraiMesh } from './src/generation/Samurai.js';
+import { generateVikingJarlMesh } from './src/generation/VikingJarl.js';
+import { generateMusketeerMesh } from './src/generation/Musketeer.js';
+import { generateRangerMesh } from './src/generation/Ranger.js';
+
+// === SHARED BODY PART HELPERS ===
+function makeHead(y, color, size=0.11) {
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(size, 8, 8),
+    new THREE.MeshStandardMaterial({ color, metalness: 0.1, roughness: 0.7 })
+  );
+  head.position.y = y;
+  return head;
+}
+function makeTorso(y, color, rTop=0.13, rBot=0.15, h=0.28, seg=6) {
+  const torso = new THREE.Mesh(
+    new THREE.CylinderGeometry(rTop, rBot, h, seg),
+    new THREE.MeshStandardMaterial({ color, metalness: 0.3, roughness: 0.7 })
+  );
+  torso.position.y = y;
+  return torso;
+}
+function makeArm(x, y, z, color, upper=true, rotZ=0) {
+  const geo = upper ? new THREE.CylinderGeometry(0.035, 0.035, 0.22, 5) : new THREE.CylinderGeometry(0.03, 0.03, 0.18, 5);
+  const mat = new THREE.MeshStandardMaterial({ color, metalness: 0.2, roughness: 0.7 });
+  const arm = new THREE.Mesh(geo, mat);
+  arm.position.set(x, y, z);
+  arm.rotation.z = rotZ;
+  return arm;
+}
+function makeLeg(x, y, color) {
+  const leg = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.05, 0.22, 5),
+    new THREE.MeshStandardMaterial({ color, metalness: 0.7, roughness: 0.4 })
+  );
+  leg.position.set(x, y, 0);
+  return leg;
+}
+function makeHand(x, y, color) {
+  const hand = new THREE.Mesh(
+    new THREE.BoxGeometry(0.06, 0.06, 0.06),
+    new THREE.MeshStandardMaterial({ color, metalness: 0.2, roughness: 0.8 })
+  );
+  hand.position.set(x, y, 0);
+  return hand;
+}
+
+// TODO: Placeholder functions for unimplemented generals
+function generateRomanCenturionMesh() { const group = new THREE.Group(); /* TODO: implement */ return group; }
+function generateMinotaurMesh() { const group = new THREE.Group(); /* TODO: implement */ return group; }
+function generateAnubisMesh() { const group = new THREE.Group(); /* TODO: implement */ return group; }
+function generateThorMesh() { const group = new THREE.Group(); /* TODO: implement */ return group; }
+function generateCyborgCommanderMesh() { const group = new THREE.Group(); /* TODO: implement */ return group; }
+function generateSpaceMarineMesh() { const group = new THREE.Group(); /* TODO: implement */ return group; }
+function generateAndroidDiplomatMesh() { const group = new THREE.Group(); /* TODO: implement */ return group; }
+function generatePirateCaptainMesh() { const group = new THREE.Group(); /* TODO: implement */ return group; }
+function generateCowboySheriffMesh() { const group = new THREE.Group(); /* TODO: implement */ return group; }
+function generateSteampunkInventorMesh() { const group = new THREE.Group(); /* TODO: implement */ return group; }
+function generateCavemanChieftainMesh() { const group = new THREE.Group(); /* TODO: implement */ return group; }
+
+// --- Scene setup ---
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xbfe3f7);
+
+const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 4, 12);
+camera.lookAt(0, 0.7, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+hemiLight.position.set(0, 10, 0);
+scene.add(hemiLight);
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(5, 10, 7.5);
+scene.add(dirLight);
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(20, 20),
+  new THREE.MeshStandardMaterial({ color: 0x7ec850, roughness: 0.8 })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -1.2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// --- Add all generals to the scene in a grid ---
+const generalFns = [
+  generateKnightMesh,
+  generateSorcererMesh, // replaced wizard with sorcerer
+  generateRoyaltyMesh,
+  generateRogueMesh,
+  generatePriestMesh,
+  generateBarbarianMesh,
+  generateDruidMesh,
+  generateNecromancerMesh,
+  generateGoblinChiefMesh,
+  generateDragonKnightMesh,
+  generateSamuraiMesh,
+  generateVikingJarlMesh,
+  generateMusketeerMesh,
+  generateRomanCenturionMesh,
+  generateMinotaurMesh,
+  generateAnubisMesh,
+  generateThorMesh,
+  generateCyborgCommanderMesh,
+  generateSpaceMarineMesh,
+  generateAndroidDiplomatMesh,
+  generatePirateCaptainMesh,
+  generateCowboySheriffMesh,
+  generateSteampunkInventorMesh,
+  generateCavemanChieftainMesh,
+  generateRangerMesh
+];
+// Auto-calculate grid size
+const generalsPerRow = Math.ceil(Math.sqrt(generalFns.length));
+for (let i = 0; i < generalFns.length; i++) {
+  const mesh = generalFns[i]();
+  mesh.position.x = (i % generalsPerRow) * 2.2 - (generalsPerRow - 1) * 1.1;
+  mesh.position.z = -Math.floor(i / generalsPerRow) * 2.5;
+  scene.add(mesh);
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html> 

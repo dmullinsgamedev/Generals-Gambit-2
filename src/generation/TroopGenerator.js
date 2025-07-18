@@ -414,7 +414,7 @@ export function determineTroopVariantFromPrompt(prompt, troopType) {
   return variants[Math.floor(Math.random() * variants.length)];
 }
 
-// --- GENERAL GENERATION ---
+// Only the mannequin-style generateCustomGeneralMesh should remain below.
 export function generateCustomGeneralMesh(prompt, isPlayer, generalColor) {
   const lowerPrompt = prompt.toLowerCase();
   
