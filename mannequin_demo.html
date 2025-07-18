@@ -11,9 +11,21 @@
 </head>
 <body>
 <div id="ui">
+  <h4>Clothing</h4>
   <button id="toggleHat">Toggle Hat</button>
   <button id="toggleStaff">Toggle Staff</button>
   <button id="toggleRobe">Toggle Robe</button>
+  <button id="toggleZubon">Toggle Zubon</button>
+  
+  <h4>Body Parts</h4>
+  <button id="toggleTorso">Toggle Torso</button>
+  <button id="toggleArms">Toggle Arms</button>
+  <button id="toggleHands">Toggle Hands</button>
+  <button id="toggleLegs">Toggle Legs</button>
+  <button id="toggleFeet">Toggle Feet</button>
+  <button id="toggleHead">Toggle Head</button>
+  
+  <h4>Poses</h4>
   <button id="poseArms">Pose Arms</button>
   <button id="resetPose">Reset Pose</button>
   <button id="walkPose">Walk</button>
@@ -23,7 +35,7 @@
 <script type="module">
 import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
 import { generateHumanoidSkeleton, attachToBone, poseHumanoid } from './src/generation/HumanoidSkeleton.js';
-import { generateSkinnedRobe } from './src/generation/SkinnedRobe.js';
+import { ClothingManager } from './src/generation/ClothingManager.js';
 
 const { skeleton, bones } = generateHumanoidSkeleton();
 
@@ -33,36 +45,8 @@ const skeletonDefaultY = skeleton.position.y;
 // Store the head's original local y-position
 const headDefaultY = bones.head.position.y;
 
-// Accessories/overlays
-let hat, brim, staff, robe;
-let skinnedRobeObj;
-
-function makeHat() {
-  const group = new THREE.Group();
-  const hatMesh = new THREE.Mesh(
-    new THREE.ConeGeometry(0.13, 0.28, 16),
-    new THREE.MeshStandardMaterial({ color: 0x7c3aed, metalness: 0.3, roughness: 0.7 })
-  );
-  hatMesh.position.y = 0.19;
-  group.add(hatMesh);
-  const brimMesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.16, 0.16, 0.022, 18),
-    new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.7, roughness: 0.3 })
-  );
-  brimMesh.position.y = 0.07;
-  group.add(brimMesh);
-  group.hatMesh = hatMesh; // attach for animation
-  return group;
-}
-function makeStaff() {
-  const mesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.022, 0.022, 0.55, 10),
-    new THREE.MeshStandardMaterial({ color: 0x8B5A2B, metalness: 0.2, roughness: 0.7 })
-  );
-  mesh.position.set(0, -0.18, 0.04);
-  mesh.rotation.set(-Math.PI / 8, Math.PI / 12, Math.PI / 20);
-  return mesh;
-}
+// Create clothing manager for the character
+const clothingManager = new ClothingManager({ bones, skeleton });
 
 // Add minimal face (dots for eyes)
 for (let i = -1; i <= 1; i += 2) {
@@ -85,6 +69,78 @@ camera.lookAt(0, 1, 0);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+
+// Simple orbit controls implementation
+let isMouseDown = false;
+let mouseX = 0;
+let mouseY = 0;
+let targetRotationX = 0;
+let targetRotationY = 0;
+let currentRotationX = 0;
+let currentRotationY = 0;
+let distance = 6;
+let targetDistance = 6;
+
+// Mouse event listeners for orbit controls
+renderer.domElement.addEventListener('mousedown', (event) => {
+  isMouseDown = true;
+  mouseX = event.clientX;
+  mouseY = event.clientY;
+});
+
+renderer.domElement.addEventListener('mousemove', (event) => {
+  if (isMouseDown) {
+    const deltaX = event.clientX - mouseX;
+    const deltaY = event.clientY - mouseY;
+    
+    targetRotationY += deltaX * 0.01;
+    targetRotationX += deltaY * 0.01;
+    
+    // Clamp vertical rotation to prevent flipping
+    targetRotationX = Math.max(-Math.PI/2, Math.min(Math.PI/2, targetRotationX));
+    
+    mouseX = event.clientX;
+    mouseY = event.clientY;
+  }
+});
+
+renderer.domElement.addEventListener('mouseup', () => {
+  isMouseDown = false;
+});
+
+// Wheel event for zoom
+renderer.domElement.addEventListener('wheel', (event) => {
+  targetDistance += event.deltaY * 0.01;
+  targetDistance = Math.max(2, Math.min(20, targetDistance));
+});
+
+// Touch events for mobile
+renderer.domElement.addEventListener('touchstart', (event) => {
+  if (event.touches.length === 1) {
+    isMouseDown = true;
+    mouseX = event.touches[0].clientX;
+    mouseY = event.touches[0].clientY;
+  }
+});
+
+renderer.domElement.addEventListener('touchmove', (event) => {
+  if (isMouseDown && event.touches.length === 1) {
+    const deltaX = event.touches[0].clientX - mouseX;
+    const deltaY = event.touches[0].clientY - mouseY;
+    
+    targetRotationY += deltaX * 0.01;
+    targetRotationX += deltaY * 0.01;
+    
+    targetRotationX = Math.max(-Math.PI/2, Math.min(Math.PI/2, targetRotationX));
+    
+    mouseX = event.touches[0].clientX;
+    mouseY = event.touches[0].clientY;
+  }
+});
+
+renderer.domElement.addEventListener('touchend', () => {
+  isMouseDown = false;
+});
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
 hemiLight.position.set(0, 10, 0);
 scene.add(hemiLight);
@@ -102,42 +158,142 @@ scene.add(ground);
 scene.add(skeleton);
 
 // UI logic
-let hatOn = false, staffOn = false, robeOn = false;
+let hatOn = false, staffOn = false, robeOn = false, zubonOn = false;
+let torsoVisible = true, armsVisible = true, handsVisible = true, legsVisible = true, feetVisible = true, headVisible = true;
+
+// Store original mesh visibility states
+const originalMeshes = {
+  torso: bones.torso.children[0],
+  abdomen: bones.abdomen.children[0],
+  pelvis: bones.pelvis.children[0],
+  head: bones.head.children[0],
+  neck: bones.neck.children[0],
+  upperArms: {
+    left: bones.upperArms.left.children[0],
+    right: bones.upperArms.right.children[0]
+  },
+  lowerArms: {
+    left: bones.lowerArms.left.children[0],
+    right: bones.lowerArms.right.children[0]
+  },
+  hands: {
+    left: bones.hands.left.children[0],
+    right: bones.hands.right.children[0]
+  },
+  upperLegs: {
+    left: bones.upperLegs.left.children[0],
+    right: bones.upperLegs.right.children[0]
+  },
+  lowerLegs: {
+    left: bones.lowerLegs.left.children[0],
+    right: bones.lowerLegs.right.children[0]
+  },
+  feet: {
+    left: bones.feet.left.children[0],
+    right: bones.feet.right.children[0]
+  }
+};
+
 document.getElementById('toggleHat').onclick = () => {
   if (!hatOn) {
-    hat = makeHat();
-    attachToBone(bones, 'head', hat);
+    clothingManager.addClothing('hat', { color: 0x7c3aed, brimColor: 0xFFD700 });
     hatOn = true;
-  } else if (hat) {
-    bones.head.remove(hat);
-    hat = null;
+  } else {
+    clothingManager.removeClothing('hat');
     hatOn = false;
   }
 };
+
 document.getElementById('toggleStaff').onclick = () => {
   if (!staffOn) {
-    staff = makeStaff();
-    attachToBone(bones, 'hands.right', staff);
+    clothingManager.addClothing('staff', { color: 0x8B5A2B });
     staffOn = true;
-  } else if (staff) {
-    bones.hands.right.remove(staff);
-    staff = null;
+  } else {
+    clothingManager.removeClothing('staff');
     staffOn = false;
   }
 };
+
 document.getElementById('toggleRobe').onclick = () => {
   if (!robeOn) {
-    skinnedRobeObj = generateSkinnedRobe(bones);
-    robe = skinnedRobeObj.mesh;
-    attachToBone(bones, 'pelvis', robe);
+    clothingManager.addClothing('robe', { 
+      color: 0x7c3aed,
+      height: 0.55,
+      radiusTop: 0.14,
+      radiusWaist: 0.11,
+      radiusBottom: 0.18
+    });
     robeOn = true;
-  } else if (robe) {
-    bones.pelvis.remove(robe);
-    robe = null;
-    skinnedRobeObj = null;
+  } else {
+    clothingManager.removeClothing('robe');
     robeOn = false;
   }
 };
+
+document.getElementById('toggleZubon').onclick = () => {
+  if (!zubonOn) {
+    clothingManager.addClothing('zubon', { 
+      color: 0x2d3748,
+      height: 0.35,
+      radiusTop: 0.12,
+      radiusWaist: 0.10,
+      radiusBottom: 0.08
+    });
+    zubonOn = true;
+  } else {
+    clothingManager.removeClothing('zubon');
+    zubonOn = false;
+  }
+};
+
+// Body part visibility toggles
+document.getElementById('toggleTorso').onclick = () => {
+  torsoVisible = !torsoVisible;
+  originalMeshes.torso.visible = torsoVisible;
+  originalMeshes.abdomen.visible = torsoVisible;
+  originalMeshes.pelvis.visible = torsoVisible;
+  originalMeshes.neck.visible = torsoVisible;
+};
+
+document.getElementById('toggleArms').onclick = () => {
+  armsVisible = !armsVisible;
+  originalMeshes.upperArms.left.visible = armsVisible;
+  originalMeshes.upperArms.right.visible = armsVisible;
+  originalMeshes.lowerArms.left.visible = armsVisible;
+  originalMeshes.lowerArms.right.visible = armsVisible;
+};
+
+document.getElementById('toggleHands').onclick = () => {
+  handsVisible = !handsVisible;
+  originalMeshes.hands.left.visible = handsVisible;
+  originalMeshes.hands.right.visible = handsVisible;
+};
+
+document.getElementById('toggleLegs').onclick = () => {
+  legsVisible = !legsVisible;
+  originalMeshes.upperLegs.left.visible = legsVisible;
+  originalMeshes.upperLegs.right.visible = legsVisible;
+  originalMeshes.lowerLegs.left.visible = legsVisible;
+  originalMeshes.lowerLegs.right.visible = legsVisible;
+};
+
+document.getElementById('toggleFeet').onclick = () => {
+  feetVisible = !feetVisible;
+  originalMeshes.feet.left.visible = feetVisible;
+  originalMeshes.feet.right.visible = feetVisible;
+};
+
+document.getElementById('toggleHead').onclick = () => {
+  headVisible = !headVisible;
+  originalMeshes.head.visible = headVisible;
+  // Also hide/show the eyes
+  bones.head.children.forEach(child => {
+    if (child.geometry && child.geometry.type === 'SphereGeometry') {
+      child.visible = headVisible;
+    }
+  });
+};
+
 document.getElementById('poseArms').onclick = () => {
   poseHumanoid(bones, {
     'upperArms.right': { z: -Math.PI/2.5 },
@@ -146,6 +302,7 @@ document.getElementById('poseArms').onclick = () => {
     'lowerArms.left': { z: Math.PI/2.5 }
   });
 };
+
 document.getElementById('resetPose').onclick = () => {
   poseHumanoid(bones, {
     'upperArms.right': { z: 0 },
@@ -168,6 +325,7 @@ function setAnimation(state) {
 document.getElementById('walkPose').onclick = () => {
   setAnimation(animationState === 'walk' ? null : 'walk');
 };
+
 document.getElementById('idlePose').onclick = () => {
   setAnimation(animationState === 'idle' ? null : 'idle');
 };
@@ -188,13 +346,18 @@ document.getElementById('castPose').onclick = () => {
 function animate() {
   requestAnimationFrame(animate);
   const now = performance.now();
+  
   if (animationState === 'walk') {
     const t = (now - walkStartTime) / 400;
+    
     // Head bob and tilt (main motion)
-    bones.head.position.y = headDefaultY + 0.0125 * Math.sin(t * 2); // bob around original position
+    bones.head.position.y = headDefaultY + 0.0125 * Math.sin(t * 2);
     bones.head.rotation.z = 0.0125 * Math.sin(t);
+    
     // Body bounce (half previous strength)
     skeleton.position.y = skeletonDefaultY + 0.0375 * Math.abs(Math.sin(t));
+    
+    // Pose arms and legs
     poseHumanoid(bones, {
       'upperArms.right': { x: Math.PI/4 * Math.sin(t) },
       'lowerArms.right': { x: Math.PI/8 * Math.sin(t) },
@@ -205,31 +368,35 @@ function animate() {
       'upperLegs.left': { x: -Math.PI/6 * Math.sin(t) },
       'lowerLegs.left': { x: Math.PI/12 * Math.sin(t) }
     });
-    // Hat: small secondary tilt (follow-through)
-    if (hat && hat.hatMesh) {
-      hat.hatMesh.position.y = 0.19;
-      hat.hatMesh.rotation.z = 0.03 * Math.sin(t - 0.2);
-    }
-    // Animate robe (sway and bob)
-    if (robe) {
-      robe.rotation.z = 0.10 * Math.sin(t);
-      robe.position.y = -0.08 + 0.01 * Math.sin(t * 2);
-    }
+    
+    // Animate clothing through the clothing manager
+    clothingManager.animateClothing('walk', t);
+    
   } else if (animationState === 'idle') {
+    // Reset to idle state
     bones.head.position.y = headDefaultY;
     bones.head.rotation.z = 0;
     skeleton.position.y = skeletonDefaultY;
-    if (hat && hat.hatMesh) {
-      hat.hatMesh.position.y = 0.19;
-      hat.hatMesh.rotation.z = 0;
-    }
-    if (robe) {
-      robe.rotation.z = 0;
-      robe.position.y = -0.08;
-    }
+    
+    // Animate clothing to idle
+    clothingManager.animateClothing('idle', 0);
   }
+  
+  // Update custom orbit controls with smooth interpolation
+  currentRotationX += (targetRotationX - currentRotationX) * 0.1;
+  currentRotationY += (targetRotationY - currentRotationY) * 0.1;
+  distance += (targetDistance - distance) * 0.1;
+  
+  // Update camera position based on orbit controls
+  const targetY = 1; // Target at mannequin center
+  camera.position.x = distance * Math.sin(currentRotationY) * Math.cos(currentRotationX);
+  camera.position.y = targetY + distance * Math.sin(currentRotationX);
+  camera.position.z = distance * Math.cos(currentRotationY) * Math.cos(currentRotationX);
+  camera.lookAt(0, targetY, 0);
+  
   renderer.render(scene, camera);
 }
+
 animate();
 
 window.addEventListener('resize', () => {
